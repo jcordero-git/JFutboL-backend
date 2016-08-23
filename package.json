@@ -1,0 +1,14 @@
+{
+  "name": "Social_Match",
+  "version": "0.0.1",
+  "private": true,
+  "main": "server.js",
+  "scripts": {"start": "node server.js"},
+  "dependencies": {
+		"express": "4.10.6",
+		"mysql": "2.5.4",
+		"jade": "*",
+		"async":"*",
+		"jsonwebtoken": "*"
+		}
+}

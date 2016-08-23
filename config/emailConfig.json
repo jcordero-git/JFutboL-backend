@@ -1,0 +1,8 @@
+{
+  "host": "smtp.gmail.com",
+  "port": "465",
+  "secure": "true",
+  "service": "Social Match",
+  "user": "jocorbre@gmail.com",
+  "pass": "GmailEdited881125"
+}
