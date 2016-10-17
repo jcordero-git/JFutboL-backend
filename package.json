@@ -1,5 +1,5 @@
 {
-  "name": "Social_Match",
+  "name": "JFutboL",
   "version": "0.0.1",
   "private": true,
   "main": "server.js",
@@ -11,4 +11,8 @@
 		"async":"*",
 		"jsonwebtoken": "*"
 		}
+	"engines":{
+		"node": "0.10.29"
+		"npm": "1.4.14"
+	}
 }
