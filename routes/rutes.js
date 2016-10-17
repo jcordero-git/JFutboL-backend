@@ -248,7 +248,7 @@ module.exports = function(app){
 		}));
 		return transporter;
 	});		
-	/*
+/*
 	var mailOptions = {
     from: 'Fred Foo ? <foo@blurdybloop.com>', // sender address
     to: 'jocorbre@gmail.com', // list of receivers
@@ -267,6 +267,7 @@ module.exports = function(app){
 	});
 	*/
 
+//Send Emails
 	function sendEmail(mailOptions2){
 		transporter.sendMail(mailOptions2,function(error, info){
 		if(error){
@@ -277,7 +278,7 @@ module.exports = function(app){
 		});
 	}
 	
-	/*
+/*
 	findAllList=function(req, res){
 	listVa.find(function(err,list){
 	//console.log("menu: "+list);
@@ -500,7 +501,7 @@ module.exports = function(app){
 	            	  });	                  
 	});
 	
-	/*
+/*
 	findUserByEmail=function(req, res){
 	userVa.findOne({email:req.params.email}, function(err,user){
 		if(!err) 
@@ -692,7 +693,7 @@ module.exports = function(app){
 	});
 	};
 	
-//Sear User
+//Search User
 	searchUser=function(req, res){		
 		var existUserName=false;
 		var existEmail=false;	
@@ -715,7 +716,7 @@ module.exports = function(app){
 		});			  
 	};
 	
-//Sear Player
+//Search Player
 	apiRoutes.get("/players/:player", function(req, res){		
 		var existUserName=false;
 		var existEmail=false;			
@@ -781,7 +782,31 @@ module.exports = function(app){
 				}			  
 		});		
 	});	
-	
+
+//Update team by teamId
+	apiRoutes.post("/team/update/:teamId", function(req, res){	
+		var teamId=req.params.teamId;
+		var base64Data = req.body.encodedImage;			
+		if(base64Data!="")
+			{							  
+		    require("fs").writeFile("public/images/team/"+teamId+".png", base64Data, 'base64', function(err) 
+		    	{			  						     
+				});
+		    }
+		connection.query('UPDATE teams SET name="'+req.body.name+
+			'", provinceId='+req.body.provinceId+
+			', cantonId='+ req.body.cantonId+' WHERE teamId='+teamId, function(updateTeamErr, team) {	
+			  if (!updateTeamErr)
+				  {									 	
+				  res.send({"code": 2000, "message": "The team was updated successfully."});
+				  }
+			  else{
+				  res.send({"code": 1003, "message": "There are errors while updating the team, try again!"});
+				  console.log('There are errors while updating the team, try again!', updateTeamErr);
+				}			  
+		});		
+	});
+
 //user who has an especific token
 	apiRoutes.get('/check', function(req, res) {
 	res.json(req.decoded);
@@ -1174,7 +1199,7 @@ module.exports = function(app){
 	
 //Get all new notification for an especific user
 	apiRoutes.get("/playersNotifications/:playerId", function(req, res){
-	connection.query('SELECT notificationsId, notification, userId, DATE_FORMAT(date,"%Y-%m-%d %T") as date, status, type, keyId, img FROM notifications WHERE status=0 AND userId='+req.params.playerId+' ORDER BY date DESC', function(selectNotificationsErr, notifications) {	
+	connection.query('SELECT notificationsId, shortNotification, notification, userId, DATE_FORMAT(date,"%Y-%m-%d %T") as date, status, type, keyId, img FROM notifications WHERE status=0 AND userId='+req.params.playerId+' ORDER BY date DESC', function(selectNotificationsErr, notifications) {	
 		  if (!selectNotificationsErr)
 			  {	
 			  res.send(notifications);
@@ -1512,7 +1537,7 @@ module.exports = function(app){
 		});		
 	});	
 
- //Get Soccer Fields included on specific Team
+//Get Soccer Fields included on specific Team
 	apiRoutes.get("/soccercenter/:soccerCenterId/soccerfields", function(req, res){	
 	connection.query('SELECT * FROM social_match.soccerfields WHERE soccerCenterId='+req.params.soccerCenterId, function(selectSoccerFieldsErr, soccerfields) {	
 		  if (!selectSoccerFieldsErr)
