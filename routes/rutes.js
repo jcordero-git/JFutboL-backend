@@ -1258,7 +1258,7 @@ module.exports = function(app){
 	apiRoutes.get("/matches", function(req, res){	
 	connection.query('SELECT M.matchID, M.team1ID, T1.name team1Name, M.goalsTeam1, M.team2ID, T2.name team2Name, M.goalsTeam2, M.dateTime,'+
 					 ' T1.captainId team1captainId, T2.captainId team2captainId, DATE_FORMAT(SFDS.date,"%Y-%m-%d") as date, SFDS.startTime, SFDS.endTime, SF.name soccerFieldName, SC.name soccerCenterName, SFDS.isReserved'+
-					 ' FROM social_match.matches M'+
+					 ' FROM matches M'+
 					 ' INNER JOIN teams T1'+
 					 ' ON T1.teamId=M.team1ID'+
 					 ' INNER JOIN teams T2'+
@@ -1284,7 +1284,7 @@ module.exports = function(app){
 	apiRoutes.get("/matches/:playerId", function(req, res){	
 	connection.query('SELECT M.matchID, M.team1ID, T1.name team1Name, M.goalsTeam1, M.team2ID, T2.name team2Name, M.goalsTeam2, M.dateTime,'+
 		             ' T1.captainId team1captainId, T2.captainId team2captainId, T1.ownerId team1OwnerId, T2.ownerId team2OwnerId, DATE_FORMAT(SFDS.date,"%Y-%m-%d") as date, SFDS.startTime, SFDS.endTime, SF.name soccerFieldName, SC.name soccerCenterName, SFDS.isReserved, TP.teamId myTeamId, T.name myTeamName, T.provinceId myTeamProvinceId, P.name myTeamProvinceName, T.cantonId myTeamCantonId, C.name myTeamCantonName'+
-		             ' FROM social_match.matches M'+
+		             ' FROM matches M'+
 		             ' INNER JOIN teams T1 ON T1.teamId=M.team1ID'+
 		             ' INNER JOIN teams T2 ON T2.teamId=M.team2ID'+
 		             ' INNER JOIN matchplayer MP ON MP.matchID=M.matchId'+
@@ -1477,7 +1477,7 @@ module.exports = function(app){
 
 //Get Provinces
 	getProvinces = function(req, res){	
-	connection.query('SELECT * FROM social_match.provinces', function(selectProvincesErr, provinces) {	
+	connection.query('SELECT * FROM provinces', function(selectProvincesErr, provinces) {	
 		  if (!selectProvincesErr)
 			  {	
 			  res.send(provinces);
@@ -1491,7 +1491,7 @@ module.exports = function(app){
 
 //Get cantons
     getCantons = function(req, res){	
-	connection.query('SELECT * FROM social_match.cantons WHERE provinceId='+req.params.provinceId, function(selectcantonsErr, cantons) {	
+	connection.query('SELECT * FROM cantons WHERE provinceId='+req.params.provinceId, function(selectcantonsErr, cantons) {	
 		  if (!selectcantonsErr)
 			  {	
 			  res.send(cantons);
@@ -1505,7 +1505,7 @@ module.exports = function(app){
 
 //Get My soccercenters
 	apiRoutes.get("/soccercenter/:ownerId", function(req, res){	
-	connection.query('SELECT * FROM social_match.soccercenters WHERE ownerId='+req.params.ownerId, function(selectSoccerCenterErr, soccercenters) {	
+	connection.query('SELECT * FROM soccercenters WHERE ownerId='+req.params.ownerId, function(selectSoccerCenterErr, soccercenters) {	
 		  if (!selectSoccerCenterErr)
 			  {	
 			  res.send(soccercenters);
@@ -1554,7 +1554,7 @@ module.exports = function(app){
 
 //Get Soccer Fields included on specific Team
 	apiRoutes.get("/soccercenter/:soccerCenterId/soccerfields", function(req, res){	
-	connection.query('SELECT * FROM social_match.soccerfields WHERE soccerCenterId='+req.params.soccerCenterId, function(selectSoccerFieldsErr, soccerfields) {	
+	connection.query('SELECT * FROM soccerfields WHERE soccerCenterId='+req.params.soccerCenterId, function(selectSoccerFieldsErr, soccerfields) {	
 		  if (!selectSoccerFieldsErr)
 			  {	
 			  res.send(soccerfields);
@@ -1603,15 +1603,15 @@ module.exports = function(app){
 
 //Get Available Soccer Fields
 	apiRoutes.get("/soccerfields/available/:provinceId/:cantonId/:date/:startTime/:endTime", function(req, res){	
-	connection.query('SELECT SF.soccerFieldId, SF.soccerCenterId, SC.name soccerCenterName, SF.name FROM social_match.soccerfields SF'+
-					 ' INNER JOIN social_match.soccercenters SC'+
+	connection.query('SELECT SF.soccerFieldId, SF.soccerCenterId, SC.name soccerCenterName, SF.name FROM soccerfields SF'+
+					 ' INNER JOIN soccercenters SC'+
 					 ' ON SF.soccerCenterId=SC.soccerCenterID'+
 					 ' WHERE SC.provinceId IN ('+req.params.provinceId+') AND SC.cantonId IN ('+req.params.cantonId+')'+ 
 					 ' AND SF.soccerFieldId NOT IN('+
-					 	 						   ' SELECT SF.soccerFieldId FROM social_match.soccerfields SF'+
-					 	 						   ' INNER JOIN social_match.soccercenters SC'+
+					 	 						   ' SELECT SF.soccerFieldId FROM soccerfields SF'+
+					 	 						   ' INNER JOIN soccercenters SC'+
 					 	 						   ' ON SF.soccerCenterId=SC.soccerCenterID'+
-					 	 						   ' INNER JOIN social_match.soccerfieldsdisponibilityschedule SFDS'+
+					 	 						   ' INNER JOIN soccerfieldsdisponibilityschedule SFDS'+
 					 	 						   ' ON SFDS.soccerFieldId=SF.soccerFieldId'+
 					 	 						   ' WHERE SC.provinceId IN ('+req.params.provinceId+')'+
 					 	 						   ' AND SC.cantonId IN ('+req.params.cantonId+')'+
@@ -1640,8 +1640,8 @@ module.exports = function(app){
 //Get Available Soccer Fields
 	apiRoutes.get("/soccerfields/:provinceId/:cantonId", function(req, res){	
 	// console.log('searching soccer field with the following criteria: '+req.params.provinceId+' - '+req.params.cantonId+' - '+req.params.date);
-	connection.query('SELECT SF.soccerFieldId, SF.soccerCenterId, SC.name soccerCenterName, SF.name, SF.openTime, SF.closeTime FROM social_match.soccerfields SF'+
-					 ' INNER JOIN social_match.soccercenters SC'+
+	connection.query('SELECT SF.soccerFieldId, SF.soccerCenterId, SC.name soccerCenterName, SF.name, SF.openTime, SF.closeTime FROM soccerfields SF'+
+					 ' INNER JOIN soccercenters SC'+
 					 ' ON SF.soccerCenterId=SC.soccerCenterID'+
 					 ' WHERE SC.provinceId IN ('+req.params.provinceId+') AND SC.cantonId IN ('+req.params.cantonId+')', 
 			function(selectSoccerCenterErr, soccercenters) {	
@@ -1658,7 +1658,7 @@ module.exports = function(app){
 
 //Get Soccer Fields reserved hours by date
 	apiRoutes.get("/soccerfield/:soccerFieldId/reservedHours/:date", function(req, res){	
-	connection.query('SELECT * FROM social_match.soccerfieldsdisponibilityschedule WHERE soccerFieldId='+req.params.soccerFieldId+' AND Date="'+req.params.date+'"', function(selectSoccerFieldReservedHoursErr, soccerfieldsReservedHours) {	
+	connection.query('SELECT * FROM soccerfieldsdisponibilityschedule WHERE soccerFieldId='+req.params.soccerFieldId+' AND Date="'+req.params.date+'"', function(selectSoccerFieldReservedHoursErr, soccerfieldsReservedHours) {	
 		  if (!selectSoccerFieldReservedHoursErr)
 			  {	
 			  res.send(soccerfieldsReservedHours);
