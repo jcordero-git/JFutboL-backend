@@ -13,6 +13,20 @@ module.exports = function(app){
 	var apkVersion="0.0.1";
 	
 	var connection = mysql.createConnection({
+		  host     : 'us-cdbr-iron-east-04.cleardb.net',
+		  user     : 'bb610dee688b62',
+		  password : 'ec60664e',
+		  database : 'heroku_d6467fbeb5b99b3'
+		});
+	var connection2 = mysql.createConnection({
+		  host     : 'us-cdbr-iron-east-04.cleardb.net',
+		  user     : 'bb610dee688b62',
+		  password : 'ec60664e',
+		  database : 'heroku_d6467fbeb5b99b3'
+		});
+		
+	/*
+	var connection = mysql.createConnection({
 		  host     : 'localhost',
 		  user     : 'root',
 		  password : '251188',
@@ -24,6 +38,7 @@ module.exports = function(app){
 		  password : '251188',
 		  database : 'social_match'
 		});
+	*/
 		
 
 	app.all('*', function(req, res, next) {
