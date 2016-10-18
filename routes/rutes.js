@@ -467,7 +467,7 @@ module.exports = function(app){
 	            			user[0].skills=skills;
 							var token = jwt.sign(user[0], app.get('superSecret'), 
 								{
-								expiresInMinutes: 1440 // expires in 24 hours
+								//expiresInMinutes: 1440 // expires in 24 hours
 								});
 	       					res.send({"code":2000, "message": token});
 	       					}
