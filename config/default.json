@@ -1,0 +1,16 @@
+{
+	"dbConfig": {
+		"name": "social_match",
+		"user": "root",
+		"password":"12345",
+		"options": {
+			"host":"localhost:3306",
+			"dialect": "mysql",
+			"pool": {
+				"max": 5,
+				"min": 0,
+				"idle": 10000
+			}			
+		}
+	}
+}
