@@ -17,6 +17,7 @@ var app = express();
 
 
 app.use(require('connect-dyncache')());
+app.set('models', require('./models'));
 
 /*
 connection.connect(function(err){
@@ -39,13 +40,13 @@ mongoose.connect('mongodb://admin:admin@kahana.mongohq.com:10058/foodproviders',
 
 
 var allowCrossDomain = function(req, res, next){
-      res.header("Access-Control-Allow-Origin", "http://localhost:8080");
-      res.header("Access-Control-Allow-Headers", "X-Requested-With");
-      res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELELE");
-      res.header("Access-Control-Max-Age", "3600");
-	  res.header("Access-Control-Allow-Credentials: true");
-      next();
-    }
+	res.header("Access-Control-Allow-Origin", "http://localhost:8080");
+	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELELE");
+	res.header("Access-Control-Max-Age", "3600");
+	res.header("Access-Control-Allow-Credentials: true");
+	next();
+}
 
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override')
@@ -62,10 +63,10 @@ var serveStatic = require('serve-static')
 
 
 //app.configure(function ($httpProvider) {
- 
+
   //app.use(allowCrossDomain);
   //$httpProvider.defaults.useXDomain = true;
-    
+
 //});
 
 
@@ -80,25 +81,25 @@ require('./routes/rutes')(app);
 
 
 app.all('*', function(req, res, next) {
-   res.header("Access-Control-Allow-Origin", "*");
-   res.header("Access-Control-Allow-Headers", "X-Requested-With");
-   res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,POST,PUT,DELETE');
-   res.header("Access-Control-Allow-Headers", "Origin, X--With, Content-Type, Accept");   
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,POST,PUT,DELETE');
+	res.header("Access-Control-Allow-Headers", "Origin, X--With, Content-Type, Accept");   
    // intercept OPTIONS method
-    if ('OPTIONS' == req.method) {
-      res.send(200);
-    }
-    else {
-      next();
-    }
+   if ('OPTIONS' == req.method) {
+   	res.send(200);
+   }
+   else {
+   	next();
+   }
 
- });
- 
+});
+
 
 //---Middleware: Allows cross-domain requests (CORS)
 
 
-	
+
 
 /*
 app.all('*', function(req, res,next) {
@@ -131,5 +132,5 @@ app.all('*', function(req, res,next) {
 
 
 app.listen(3000, function() {
-  console.log("Node server running on http://localhost:3000");
+	console.log("Node server running on http://localhost:3000");
 });
