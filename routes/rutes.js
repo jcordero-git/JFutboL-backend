@@ -512,7 +512,7 @@ module.exports = function(app) {
 		console.log('UserId: ' + userId);
 
 		User.findById(userId, {
-			include: [Province, Skill, Canton]
+			include: [Skill, {model: Canton, include:[Province]}]
 		}).then(function(user) {
 			console.log(user.skills);
 			userFound = user;
