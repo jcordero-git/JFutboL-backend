@@ -1,17 +1,25 @@
 module.exports = function(sequelize, Sequelize) {
-	var User = sequelize.define ('user', {
+	var User = sequelize.define('user', {
 
 		activationCode: Sequelize.STRING,
 		birthday: Sequelize.DATE,
-		cantonId: Sequelize.INTEGER,
-		email: Sequelize.STRING,
+		email: {
+			type: Sequelize.STRING,
+			unique: true
+		},
 		firstName: Sequelize.STRING,
 		lastName: Sequelize.STRING,
 		password: Sequelize.STRING,
 		phone: Sequelize.STRING,
-		provinceId: Sequelize.INTEGER,
-		userId: Sequelize.INTEGER,
+		id: {
+			type: Sequelize.INTEGER,
+			primaryKey: true,
+			autoIncrement: true
+		},
 		userType: Sequelize.INTEGER,
+	}, {
+		freezeTableName: true,
+		timestamps: true
 	})
 	return User
 }
