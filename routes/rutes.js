@@ -7,13 +7,16 @@ module.exports = function(app) {
 	var Province = app.get('models').Province;
 	var Skill = app.get('models').Skill;
 	var Canton = app.get('models').Canton;
-
-
+	var Team = app.get('models').Team;
+	var TeamPlayer = app.get('models').TeamPlayer;
+	var Skill = app.get('models').Skill;
+	var SoccerField = app.get('models').SoccerField;
+	var SoccerCenter = app.get('models').SoccerCenter;
+	var Match = app.get('models').Match;
 
 	var express = require('express');
 	var jwt = require('jsonwebtoken');
 	var config = require('./../config/config');
-
 
 	var apkVersion = "0.0.1";
 	/*
@@ -30,7 +33,6 @@ module.exports = function(app) {
 		database : 'heroku_d6467fbeb5b99b3'
 	});*/
 
-
 	var connection = mysql.createConnection({
 		host: 'localhost',
 		user: 'root',
@@ -45,14 +47,11 @@ module.exports = function(app) {
 		database: 'social_match'
 	});
 
-
-
 	app.all('*', function(req, res, next) {
 		res.header("Access-Control-Allow-Origin", "*");
 		res.header("Access-Control-Allow-Headers", "X-Requested-With");
 		next();
 	});
-
 
 	app.set('superSecret', config.secret); // secret variable	
 	var apiRoutes = express.Router();
@@ -101,7 +100,6 @@ module.exports = function(app) {
 	//var listVa= require('./model/list');	
 	//var emailSentVa= require('./model/emailsent');
 
-
 	http: //developer.android.com/reference/android/content/Context.html#getResources()
 		var nodemailer = require('nodemailer');
 	var smtpTransport = require('nodemailer-smtp-transport');
@@ -125,8 +123,6 @@ module.exports = function(app) {
 			}
 		});
 	}
-
-
 
 	console.log("\nApk Version: " + apkVersion);
 
@@ -258,8 +254,6 @@ module.exports = function(app) {
 		res.autoEtag();
 		res.send(JSON.stringify(server));
 	};
-
-
 
 	var file = __dirname + '/../config/emailConfig.json';
 	var transporter;
@@ -511,13 +505,22 @@ module.exports = function(app) {
 		var userFound;
 		console.log('UserId: ' + userId);
 
-		User.findById(userId, {
+		User.findById(10, {
+			include: [{
+				model: Match,
+				as: 'match'
+			}]
+		}).then(function(team) {
+			res.send(team);
+		});
+
+		/*User.findById(userId, {
 			include: [Skill, {model: Canton, include:[Province]}]
 		}).then(function(user) {
 			console.log(user.skills);
 			userFound = user;
 			res.send(userFound);
-		});
+		});*/
 		/*User.create({
 			birthday: "04/10/89",
 			cantonId: 1,
@@ -1147,7 +1150,6 @@ module.exports = function(app) {
 		});
 	});
 
-
 	//Update Match player request
 	apiRoutes.get("/match/playerRequest/:matchPlayerId/:requestStatus", function(req, res) {
 		console.log('MATCHPLAYER - REQUEST STATUS: updating the status to the matchPlayerId: ' + req.params.matchPlayerId + ', to :' + req.params.requestStatus);
@@ -1774,7 +1776,6 @@ module.exports = function(app) {
 		});
 	});
 
-
 	app.get("/getApkVersion", verifyApkVersion);
 	app.post('/user', registerUser);
 	//app.post('/user/activateAccount',activateUserAccount);
@@ -1800,7 +1801,6 @@ module.exports = function(app) {
 	//app.get('/players/:playerId/skills',getPlayerSkillsByID);
 	//app.get('/players/:playerId/skills/delete/:skillId',deletePlayerSkillById);
 	//app.get('/players/:playerId/teams',getTeamsWhereIncluded);
-
 
 	//app.get('/matches',getMatches);
 	//app.post('/matches',registerMatch);
@@ -1828,7 +1828,6 @@ module.exports = function(app) {
 	app.get('/verifyCallMade/:date',verifyCallMade);
 	app.put('/verifyCallMade/:date',putCallMade);
 	*/
-
 
 	app.use('/api', apiRoutes);
 
