@@ -19,7 +19,12 @@ module.exports = function(sequelize, Sequelize) {
 		userType: Sequelize.INTEGER,
 	}, {
 		freezeTableName: true,
-		timestamps: true
-	})
-	return User
+		timestamps: true,
+		defaultScope: {
+			attributes: {
+				exclude: ['password']
+			}
+		}
+	});
+	return User;
 }

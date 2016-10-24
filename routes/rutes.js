@@ -298,6 +298,10 @@ module.exports = function(app) {
 	//Send Emails
 	function sendEmail(mailOptions2) {
 		transporter.sendMail(mailOptions2, function(error, info) {
+			console.log('Entering sendEmail');
+			console.log(mailOptions2);
+			console.log(error);
+			console.log(info);
 			if (error) {
 				console.log(error);
 			} else {
@@ -460,7 +464,7 @@ module.exports = function(app) {
 		*/
 
 	//Validate User (LOGIN)
-	validateUser = function(req, res) {
+	/*validateUser1 = function(req, res) {
 		connection.query('SELECT userId, email, password, firstName, lastName, phone, birthday, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age,' +
 			' activationCode, userType, P.id, P.name provinceName, C.cantonId, C.name cantonName ' +
 			' FROM user U INNER JOIN provinces P ON P.id=U.provinceId ' +
@@ -498,29 +502,70 @@ module.exports = function(app) {
 				}
 			});
 	};
+*/
+	validateUser = function(req, res) {
+		var paramEmail = req.params.email;
+		var paramPass = req.params.password;
+		console.log(paramEmail);
+		console.log(paramPass);
+		User.scope(null).findOne({ // with scope null, we can be able to retrieve password info for actual user
+			where: {
+				'email': paramEmail
+			},
+			raw: true
+		}).then(function(user) {
+			if (user && paramPass === user.password) {
+				var token = jwt.sign(user, app.get('superSecret'), {
+					expiresIn: '24h' // expires in 24 hours
+				});
+				res.send({
+					"code": 2000,
+					"message": token
+				});
+			} else {
+				throw new Error();
+			}
+		}).catch(function(err) {
+			console.log(err);
+			res.send({
+				"code": 1001,
+				"message": "The user or password does not match."
+			});
+		});
+	};
 
 	//Get User Info
 	apiRoutes.get("/user/:userId", function(req, res) {
 		var userId = req.params.userId;
-		var userFound;
-		console.log('UserId: ' + userId);
 
-		User.findById(10, {
+		/*User.findById(10, {
 			include: [{
 				model: Match,
 				as: 'match'
 			}]
 		}).then(function(team) {
 			res.send(team);
-		});
-
-		/*User.findById(userId, {
-			include: [Skill, {model: Canton, include:[Province]}]
-		}).then(function(user) {
-			console.log(user.skills);
-			userFound = user;
-			res.send(userFound);
 		});*/
+
+		User.findById(userId, {
+			include: [Skill, {
+				model: Canton,
+				include: [Province]
+			}]
+		}).then(function(user) {
+			console.log(user);
+			if (user) {
+				res.send(user.toJSON());
+			} else {
+				throw new Error();
+			}
+		}).catch(function(err) {
+			console.log(err);
+			res.send({
+				"code": 1001,
+				"message": "User not foud."
+			});
+		});
 		/*User.create({
 			birthday: "04/10/89",
 			cantonId: 1,
@@ -621,12 +666,14 @@ module.exports = function(app) {
 
 	//Update User Activation Code
 	function updateUserActivationcode(userId, activationCode) {
-		connection.query('UPDATE user SET activationCode="' + activationCode + '" WHERE userId=' + userId, function(activationErr, activation) {
-			if (!activationErr) {
-				console.log('CODE ACTIVATION - The user with id: ' + userId + ' had activated his account successfully.');
-			} else {
-				console.log('CODE ACTIVATION - The user with id: ' + userId + ' have errors while try to activate his account.');
+		User.update({
+			activationCode: activationCode
+		}, {
+			where: {
+				id: userId
 			}
+		}).catch(function(err) {
+			console.log(err);
 		});
 	};
 
@@ -663,10 +710,10 @@ module.exports = function(app) {
 
 	//Activate User Account
 	apiRoutes.post("/user/activateAccount", function(req, res) {
-		connection.query('SELECT userId FROM user WHERE email="' + req.body.email + '" AND password="' + req.body.password + '" AND activationCode="' + req.body.activationCode + '"', function(err, user) {
+		connection.query('SELECT id, firstName, lastName, email FROM user WHERE email="' + req.body.email + '" AND password="' + req.body.password + '" AND activationCode="' + req.body.activationCode + '"', function(err, user) {
 			if (!err) {
 				if (user[0]) {
-					updateActivationCode(req.body.userId, req.body.firstName + " " + req.body.lastName, req.body.email, "");
+					updateActivationCode(user[0].id, user[0].firstName + " " + user[0].lastName, user[0].email, "");
 					res.send({
 						"code": 2000,
 						"message": "The Account had been activated successfully."
@@ -677,6 +724,12 @@ module.exports = function(app) {
 						"message": "The Activation Code does not match, try again!"
 					});
 				}
+			} else {
+				console.log(err);
+				res.send({
+					"code": 1001,
+					"message": "The Activation Code does not match, try again!"
+				});
 			}
 		});
 	});
