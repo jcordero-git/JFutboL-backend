@@ -37,6 +37,9 @@ console.log("models loaded");
 	m.User.belongsToMany(m.Skill, {
 		through: 'playerSkills'
 	});
+	m.Skill.belongsToMany(m.User, {
+		through: 'playerSkills'
+	});
 	m.Canton.belongsTo(m.Province);
 	m.User.belongsTo(m.Canton);
 
@@ -99,3 +102,4 @@ console.log("models loaded");
 
 })(module.exports)
 sequelize.sync();
+module.exports.sequelize = sequelize;

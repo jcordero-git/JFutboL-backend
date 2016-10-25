@@ -13,6 +13,7 @@ module.exports = function(app) {
 	var SoccerField = app.get('models').SoccerField;
 	var SoccerCenter = app.get('models').SoccerCenter;
 	var Match = app.get('models').Match;
+	var sequelize = app.get('models').sequelize
 
 	var express = require('express');
 	var jwt = require('jsonwebtoken');
@@ -710,7 +711,31 @@ module.exports = function(app) {
 
 	//Activate User Account
 	apiRoutes.post("/user/activateAccount", function(req, res) {
-		connection.query('SELECT id, firstName, lastName, email FROM user WHERE email="' + req.body.email + '" AND password="' + req.body.password + '" AND activationCode="' + req.body.activationCode + '"', function(err, user) {
+
+		User.findOne({
+			where: {
+				email: req.body.email,
+				password: req.body.password,
+				activationCode: req.body.activationCode
+			}
+		}).then(function(user) {
+			if (user) {
+				updateActivationCode(user.id, user.firstName + " " + user.lastName, user.email, "");
+				res.send({
+					"code": 2000,
+					"message": "The Account had been activated successfully."
+				});
+			} else {
+				throw new Error();
+			}
+		}).catch(function(err) {
+			console.log(err);
+			res.status(1001).send({
+				"code": 1001,
+				"message": "The Activation Code does not match, try again!"
+			});
+		});
+		/*connection.query('SELECT id, firstName, lastName, email FROM user WHERE email="' + req.body.email + '" AND password="' + req.body.password + '" AND activationCode="' + req.body.activationCode + '"', function(err, user) {
 			if (!err) {
 				if (user[0]) {
 					updateActivationCode(user[0].id, user[0].firstName + " " + user[0].lastName, user[0].email, "");
@@ -731,84 +756,107 @@ module.exports = function(app) {
 					"message": "The Activation Code does not match, try again!"
 				});
 			}
-		});
+		});*/
 	});
 
 	//User Register
 	registerUser = function(req, res) {
-		var existUserName = false;
-		var existEmail = false;
-		connection.query('SELECT userId FROM user WHERE email="' + req.body.email + '"', function(err, user) {
-			if (!err) {
-				if (user[0]) {
-					if (user[0].userId != 0) {
-						console.log(user[0].userId);
-					}
-					res.send({
-						"code": 1002,
-						"message": "Email already exist in our data base, try again!"
-					});
-					console.log('REGISTER - An user is trying to register an existing Email, email used: ' + req.body.email);
-				} else {
-					connection.query('INSERT INTO user (email, password, firstName, lastName, phone, birthday, userType, provinceId, cantonId) VALUES ("' +
-						req.body.email + '","' + req.body.password + '","' + req.body.firstName + '","' + req.body.lastName + '","' + req.body.phone + '","' + req.body.birthday + '",' + req.body.userType + ',' + req.body.provinceId + ',' + req.body.cantonId + ')',
-						function(insertUserErr, user) {
-							if (!insertUserErr) {
-								connection.query('SELECT userId FROM user WHERE email="' + req.body.email + '"', function(selectUserErr, userInserted) {
-									if (!selectUserErr) {
-										console.log('REGISTER - A new user was registered successfully using the email: ' + req.body.email);
-										generateActivationCode(userInserted[0].userId, req.body.firstName + ' ' + req.body.lastName, req.body.email);
-										if (req.body.skills.length) {
-											for (var i = 0; i < req.body.skills.length; i++) {
-												connection.query('INSERT INTO playerSkills (userId, skillId, status) VALUES(' +
-													userInserted[0].userId + ',"' + req.body.skills[i].skillId + '",' + req.body.skills[i].intValue + ')',
-													function(insertSkillErr, user) {
-														if (!insertSkillErr) {
-															//console.log('A new skill was registered to the userId: '+userInserted[0].userId+' using the value: '+ req.body.skills[i].intValue ,"");  									  	
-														} else {
-															//res.send({"code": 2000, "message": "The user was registered but the skills have errors, try to update them!", "userId":userInserted[0].userId});
-															console.log(insertSkillErr);
+		return sequelize.transaction(function(t) {
+
+			return User.create(req.body, {
+				transaction: t
+			}).then(function(user) {
+				generateActivationCode(user.id, user.firstName + ' ' + user.lastName, user.email);
+				return user.setSkills(req.body.skills, {
+					transaction: t
+				});
+			});
+
+		}).then(function(result) {
+			res.send({
+				"code": 2000,
+				"message": "The new user was registered successfully.",
+				"id": result[0][0].userId
+			});
+		}).catch(function(err) {
+
+			console.log(err);
+			res.send(err);
+		});
+		/*
+				var existUserName = false;
+				var existEmail = false;
+				connection.query('SELECT userId FROM user WHERE email="' + req.body.email + '"', function(err, user) {
+					if (!err) {
+						if (user[0]) {
+							if (user[0].userId != 0) {
+								console.log(user[0].userId);
+							}
+							res.send({
+								"code": 1002,
+								"message": "Email already exist in our data base, try again!"
+							});
+							console.log('REGISTER - An user is trying to register an existing Email, email used: ' + req.body.email);
+						} else {
+							connection.query('INSERT INTO user (email, password, firstName, lastName, phone, birthday, userType, provinceId, cantonId) VALUES ("' +
+								req.body.email + '","' + req.body.password + '","' + req.body.firstName + '","' + req.body.lastName + '","' + req.body.phone + '","' + req.body.birthday + '",' + req.body.userType + ',' + req.body.provinceId + ',' + req.body.cantonId + ')',
+								function(insertUserErr, user) {
+									if (!insertUserErr) {
+										connection.query('SELECT userId FROM user WHERE email="' + req.body.email + '"', function(selectUserErr, userInserted) {
+											if (!selectUserErr) {
+												console.log('REGISTER - A new user was registered successfully using the email: ' + req.body.email);
+												generateActivationCode(userInserted[0].userId, req.body.firstName + ' ' + req.body.lastName, req.body.email);
+												if (req.body.skills.length) {
+													for (var i = 0; i < req.body.skills.length; i++) {
+														connection.query('INSERT INTO playerSkills (userId, skillId, status) VALUES(' +
+															userInserted[0].userId + ',"' + req.body.skills[i].skillId + '",' + req.body.skills[i].intValue + ')',
+															function(insertSkillErr, user) {
+																if (!insertSkillErr) {
+																	//console.log('A new skill was registered to the userId: '+userInserted[0].userId+' using the value: '+ req.body.skills[i].intValue ,"");  									  	
+																} else {
+																	//res.send({"code": 2000, "message": "The user was registered but the skills have errors, try to update them!", "userId":userInserted[0].userId});
+																	console.log(insertSkillErr);
+																}
+															});
+													}
+												}
+												var base64Data = req.body.encodedImage;
+												if (base64Data != "") {
+													require("fs").writeFile("public/images/profile/" + userInserted[0].userId + ".png", base64Data, 'base64', function(err) {
+
+													});
+												} else {
+													fs.readFile("public/images/profile/default.png", function(err, data) {
+														if (err)
+															throw err;
+														else {
+															fs.writeFile("public/images/profile/" + userInserted[0].userId + ".png", data, function(err) {
+
+															});
 														}
 													});
-											}
-										}
-										var base64Data = req.body.encodedImage;
-										if (base64Data != "") {
-											require("fs").writeFile("public/images/profile/" + userInserted[0].userId + ".png", base64Data, 'base64', function(err) {
-
-											});
-										} else {
-											fs.readFile("public/images/profile/default.png", function(err, data) {
-												if (err)
-													throw err;
-												else {
-													fs.writeFile("public/images/profile/" + userInserted[0].userId + ".png", data, function(err) {
-
-													});
 												}
-											});
-										}
-										res.send({
-											"code": 2000,
-											"message": "The new user was registered successfully.",
-											"userId": userInserted[0].userId
-										});
+												res.send({
+													"code": 2000,
+													"message": "The new user was registered successfully.",
+													"userId": userInserted[0].userId
+												});
 
+											} else {
+												console.log(insertUserErr);
+											}
+										});
 									} else {
+										res.send({
+											"code": 1003,
+											"message": "The are errors while try to register a new user in this moment, try later please!"
+										});
 										console.log(insertUserErr);
 									}
 								});
-							} else {
-								res.send({
-									"code": 1003,
-									"message": "The are errors while try to register a new user in this moment, try later please!"
-								});
-								console.log(insertUserErr);
-							}
-						});
-				}
-			}
-		});
+						}
+					}
+				});*/
 	};
 
 	//Search User
