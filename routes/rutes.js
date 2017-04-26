@@ -24,13 +24,13 @@ module.exports = function(app) {
 		host     : 'nt71li6axbkq1q6a.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
 		user     : 'mb6u49ef19m2p9gl',
 		password : 'xqbw0lfr1zkttj4d',
-		database : 'mr5eppzw4m6iu3ak'
+		database : 'dhcgqhdy14b0gvt3'
 	});
 	var connection2 = mysql.createConnection({
 		host     : 'nt71li6axbkq1q6a.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
 		user     : 'mb6u49ef19m2p9gl',
 		password : 'xqbw0lfr1zkttj4d',
-		database : 'mr5eppzw4m6iu3ak'
+		database : 'dhcgqhdy14b0gvt3'
 	});
 
 	/*
