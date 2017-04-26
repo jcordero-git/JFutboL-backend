@@ -19,7 +19,22 @@ module.exports = function(app) {
 	var config = require('./../config/config');
 
 	var apkVersion = "0.0.1";
+	
+	var connection = mysql.createConnection({
+		host     : 'nt71li6axbkq1q6a.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
+		user     : 'mb6u49ef19m2p9gl',
+		password : 'xqbw0lfr1zkttj4d',
+		database : 'dhcgqhdy14b0gvt3'
+	});
+	var connection2 = mysql.createConnection({
+		host     : 'nt71li6axbkq1q6a.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
+		user     : 'mb6u49ef19m2p9gl',
+		password : 'xqbw0lfr1zkttj4d',
+		database : 'dhcgqhdy14b0gvt3'
+	});
+
 	/*
+
 	var connection = mysql.createConnection({
 		host     : 'us-cdbr-iron-east-04.cleardb.net',
 		user     : 'bb610dee688b62',
@@ -31,8 +46,8 @@ module.exports = function(app) {
 		user     : 'bb610dee688b62',
 		password : 'ec60664e',
 		database : 'heroku_d6467fbeb5b99b3'
-	});*/
-
+	});
+	
 	var connection = mysql.createConnection({
 		host: 'localhost',
 		user: 'root',
@@ -46,7 +61,7 @@ module.exports = function(app) {
 		password: '12345',
 		database: 'social_match'
 	});
-
+*/
 	app.all('*', function(req, res, next) {
 		res.header("Access-Control-Allow-Origin", "*");
 		res.header("Access-Control-Allow-Headers", "X-Requested-With");
