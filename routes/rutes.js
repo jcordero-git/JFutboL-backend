@@ -1413,19 +1413,19 @@ module.exports = function(app) {
 
 	//Get all existing matches
 	apiRoutes.get("/matches", function(req, res) {
-		connection.query('SELECT M.matchID, M.team1ID, T1.name team1Name, M.goalsTeam1, M.team2ID, T2.name team2Name, M.goalsTeam2, M.dateTime,' +
+		connection.query('SELECT M.id, M.team1Id, T1.name team1Name, M.goalsTeam1, M.team2Id, T2.name team2Name, M.goalsTeam2, M.dateTime,' +
 			' T1.captainId team1captainId, T2.captainId team2captainId, DATE_FORMAT(SFDS.date,"%Y-%m-%d") as date, SFDS.startTime, SFDS.endTime, SF.name soccerFieldName, SC.name soccerCenterName, SFDS.isReserved' +
 			' FROM matches M' +
 			' INNER JOIN teams T1' +
-			' ON T1.teamId=M.team1ID' +
+			' ON T1.id=M.team1Id' +
 			' INNER JOIN teams T2' +
-			' ON T2.teamId=M.team2ID' +
+			' ON T2.id=M.team2Id' +
 			' INNER JOIN soccerfieldsdisponibilityschedule SFDS' +
-			' ON M.matchId=SFDS.matchId' +
+			' ON M.id=SFDS.matchId' +
 			' INNER JOIN soccerfields SF' +
 			' ON SFDS.soccerFieldId=SF.soccerFieldId' +
 			' INNER JOIN soccercenters SC' +
-			' ON SF.soccerCenterId=SC.soccerCenterId WHERE SFDS.isReserved=4 ORDER BY M.dateTime DESC',
+			' ON SF.soccerCenterId=SC.id WHERE SFDS.isReserved=4 ORDER BY M.dateTime DESC',
 			function(selectMatchErr, Match) {
 				if (!selectMatchErr) {
 					res.send(Match);
