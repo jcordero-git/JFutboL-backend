@@ -19,18 +19,18 @@ module.exports = function(app) {
 	var config = require('./../config/config');
 
 	var apkVersion = "0.0.1";
-	
+
 	var connection = mysql.createConnection({
-		host     : 'nt71li6axbkq1q6a.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
-		user     : 'mb6u49ef19m2p9gl',
-		password : 'xqbw0lfr1zkttj4d',
-		database : 'dhcgqhdy14b0gvt3'
+		host: 'nt71li6axbkq1q6a.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
+		user: 'mb6u49ef19m2p9gl',
+		password: 'xqbw0lfr1zkttj4d',
+		database: 'dhcgqhdy14b0gvt3'
 	});
 	var connection2 = mysql.createConnection({
-		host     : 'nt71li6axbkq1q6a.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
-		user     : 'mb6u49ef19m2p9gl',
-		password : 'xqbw0lfr1zkttj4d',
-		database : 'dhcgqhdy14b0gvt3'
+		host: 'nt71li6axbkq1q6a.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
+		user: 'mb6u49ef19m2p9gl',
+		password: 'xqbw0lfr1zkttj4d',
+		database: 'dhcgqhdy14b0gvt3'
 	});
 
 	/*
@@ -527,7 +527,8 @@ module.exports = function(app) {
 			where: {
 				'email': paramEmail
 			},
-			raw: true
+			raw: true,
+			include: [Skill]
 		}).then(function(user) {
 			if (user && paramPass === user.password) {
 				var token = jwt.sign(user, app.get('superSecret'), {
