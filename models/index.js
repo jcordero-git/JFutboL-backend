@@ -35,7 +35,7 @@ console.log("models loaded");
 
 (function(m) {
 	m.User.belongsToMany(m.Skill, {
-		through: 'playerSkills'
+		through: 'playerskills'
 	});
 	m.Canton.belongsTo(m.Province);
 	m.User.belongsTo(m.Canton);
