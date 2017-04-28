@@ -1423,7 +1423,7 @@ module.exports = function(app) {
 			' INNER JOIN soccerfieldsdisponibilityschedule SFDS' +
 			' ON M.id=SFDS.matchId' +
 			' INNER JOIN soccerfields SF' +
-			' ON SFDS.soccerFieldId=SF.soccerFieldId' +
+			' ON SFDS.soccerFieldId=SF.id' +
 			' INNER JOIN soccercenters SC' +
 			' ON SF.soccerCenterId=SC.id WHERE SFDS.isReserved=4 ORDER BY M.dateTime DESC',
 			function(selectMatchErr, Match) {
