@@ -524,6 +524,7 @@ module.exports = function(app) {
 		console.log(paramEmail);
 		console.log(paramPass);
 		User.scope(null).findOne({ // with scope null, we can be able to retrieve password info for actual user
+		include: [Skill]
 			where: {
 				'email': paramEmail
 			},
