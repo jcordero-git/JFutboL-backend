@@ -1086,11 +1086,11 @@ module.exports = function(app) {
 
 	function getPlayerSkills(resultItem, callback) {
 		connection.query('SELECT PS.skillId, S.name, status as intValue from playerskills PS inner join user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
-			' WHERE PS.userId=' + resultItem.userId + " AND status=1",
+			' WHERE PS.userId=' + resultItem.userId + ' AND status=1',
 			function(error, results, fields) {
 				var skills = results.map(getSkillsJson);
 				callback(error, {
-					userId: resultItem.userId,
+					userId: resultItem.id,
 					email: resultItem.email,
 					password: resultItem.password,
 					firstName: resultItem.firstName,
@@ -1107,8 +1107,8 @@ module.exports = function(app) {
 
 	function getSkillsJson(resultItem) {
 		return {
-			skillId: resultItem.skillId,
-			skillName: resultItem.skillName,
+			skillId: resultItem.id,
+			skillName: resultItem.name,
 			skill: resultItem.skill,
 			intValue: resultItem.intValue,
 		};
