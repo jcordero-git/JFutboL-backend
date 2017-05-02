@@ -1041,8 +1041,8 @@ module.exports = function(app) {
 	});
 
 	function getTeamPlayersAux(teamId, callback) {
-		connection.query('SELECT U.id, U.email, U.password, U.firstName, U.lastName, U.phone, U.birthday,TIMESTAMPDIFF(YEAR, U.birthday, CURDATE()) AS age, S.skillName as position, TP.requestStatus' +
-			' FROM user U INNER join teamplayer TP on U.id=TP.playerId INNER join Skills S on TP.position = S.id WHERE TP.teamId=' + teamId + ' ORDER BY TP.requestStatus DESC',
+		connection.query('SELECT U.id, U.email, U.password, U.firstName, U.lastName, U.phone, U.birthday,TIMESTAMPDIFF(YEAR, U.birthday, CURDATE()) AS age, S.name as position, TP.requestStatus' +
+			' FROM user U INNER join teamplayer TP on U.id=TP.playerId INNER join skills S on TP.positionId = S.id WHERE TP.teamId=' + teamId + ' ORDER BY TP.requestStatus DESC',
 			function(error, results, fields) {
 				async.map(results, getPlayerSkills, callback);
 			});
