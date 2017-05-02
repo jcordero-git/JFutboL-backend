@@ -1085,7 +1085,7 @@ module.exports = function(app) {
 	}
 
 	function getPlayerSkills(resultItem, callback) {
-		connection.query('SELECT PS.skillId, S.name, status as intValue from playerskills PS inner join user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
+		connection.query('SELECT S.id, S.name, status as intValue from playerskills PS inner join user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
 			' WHERE PS.userId=' + resultItem.userId + ' AND status=1',
 			function(error, results, fields) {
 				var skills = results.map(getSkillsJson);
