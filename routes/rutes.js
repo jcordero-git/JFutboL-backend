@@ -1107,10 +1107,10 @@ module.exports = function(app) {
 
 	function getSkillsJson(resultItem) {
 		return {
-			skillId: resultItem.id,
-			skillName: resultItem.name,
-			skill: resultItem.skill,
-			intValue: resultItem.intValue,
+		  skillId: resultItem.skillId,
+		  skillName: resultItem.skillName,
+		  intValue: resultItem.intValue,
+          //skill: resultItem.skill,
 		};
 	};
 
