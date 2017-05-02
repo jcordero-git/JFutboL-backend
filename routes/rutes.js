@@ -1068,14 +1068,14 @@ module.exports = function(app) {
 		var query;
 		if (searchType == "all")
 			query = 'SELECT U.id, U.email, U.password, U.firstName, U.lastName, U.phone, U.birthday,TIMESTAMPDIFF(YEAR, U.birthday, CURDATE()) AS age' +
-			' FROM user U WHERE U.userType=1 AND U.provinceId IN (' + provinceId + ') AND U.cantonId IN (' + cantonId + ')';
+			' FROM user U WHERE U.userType=1 AND U.cantonId IN (' + cantonId + ')';
 		if (searchType == "team")
 			query = 'SELECT U.id, U.email, U.password, U.firstName, U.lastName, U.phone, U.birthday,TIMESTAMPDIFF(YEAR, U.birthday, CURDATE()) AS age' +
-			' FROM user U WHERE U.userType=1 AND U.provinceId IN (' + provinceId + ') AND U.cantonId IN (' + cantonId + ')' +
+			' FROM user U WHERE U.userType=1 AND U.cantonId IN (' + cantonId + ')' +
 			' AND U.id NOT IN(SELECT TP.playerId FROM teamplayer TP WHERE TP.teamId=' + searchKey + ')';
 		if (searchType == "match")
 			query = 'SELECT U.id, U.email, U.password, U.firstName, U.lastName, U.phone, U.birthday,TIMESTAMPDIFF(YEAR, U.birthday, CURDATE()) AS age' +
-			' FROM user U WHERE U.userType=1 AND U.provinceId IN (' + provinceId + ') AND U.cantonId IN (' + cantonId + ')' +
+			' FROM user U WHERE U.userType=1 AND U.cantonId IN (' + cantonId + ')' +
 			' AND U.id NOT IN(SELECT MP.playerID FROM matchplayer MP WHERE MP.matchId=' + searchKey + ')';
 		connection.query(query,
 			function(error, results, fields) {
