@@ -1096,8 +1096,8 @@ module.exports = function(app) {
 					firstName: resultItem.firstName,
 					lastName: resultItem.lastName,
 					age: resultItem.age,
-					position: resultItem.position,
-					requestStatus: resultItem.requestStatus,
+					//position: resultItem.position,
+					//requestStatus: resultItem.requestStatus,
 					phone: resultItem.phone,
 					birthday: resultItem.birthday,
 					skills: skills
@@ -1107,8 +1107,8 @@ module.exports = function(app) {
 
 	function getSkillsJson(resultItem) {
 		return {
-		  skillId: resultItem.skillId,
-		  skillName: resultItem.skillName,
+		  skillId: resultItem.id,
+		  skillName: resultItem.name,
 		  intValue: resultItem.intValue,
           //skill: resultItem.skill,
 		};
