@@ -59,7 +59,13 @@ console.log("models loaded");
 		foreignKey: 'positionId',
 		as: 'position'
 	});
-	m.TeamPlayer.belongsTo(m.Team);
+	m.TeamPlayer.belongsTo(m.Team, {
+		foreignKey: 'teamId',
+		as: 'team'
+	});
+	
+	
+	
 	m.SoccerField.belongsTo(m.SoccerCenter);
 	m.SoccerCenter.belongsTo(m.Canton);
 	m.SoccerCenter.belongsTo(m.User, {

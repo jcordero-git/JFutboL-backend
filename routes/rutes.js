@@ -1086,34 +1086,35 @@ module.exports = function(app) {
 
 	function getPlayerSkills(resultItem, callback) {
 		connection.query('SELECT S.id, S.name, status as intValue from playerskills PS inner join user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
-			' WHERE PS.userId=' + resultItem.userId + ' AND status=1',
-			function(error, results, fields) {
+			' WHERE PS.userId=' + resultItem.id + ' AND status=1', function(error, results, fields) {
 				var skills = results.map(getSkillsJson);
 				callback(error, {
-					userId: resultItem.id,
+					id: resultItem.id,
 					email: resultItem.email,
 					password: resultItem.password,
 					firstName: resultItem.firstName,
-					lastName: resultItem.lastName,
-					age: resultItem.age,
-					//position: resultItem.position,
-					//requestStatus: resultItem.requestStatus,
+				    lastName: resultItem.lastName,
 					phone: resultItem.phone,
 					birthday: resultItem.birthday,
+					age: resultItem.age,
+					position: resultItem.position,
+					requestStatus: resultItem.requestStatus,
 					skills: skills
 				});
 			});
 	}
+	
 
 	function getSkillsJson(resultItem) {
 		return {
-		  skillId: resultItem.id,
-		  skillName: resultItem.name,
+		  id: resultItem.id,
+		  name: resultItem.name,
 		  intValue: resultItem.intValue,
-          //skill: resultItem.skill,
+		  skill: resultItem.skill,
 		};
 	};
-
+ 
+ 
 	getSkills = function(req, res) {
 		connection2.query('SELECT * FROM skills ORDER BY id ASC', function(selectSkillsErr, skill) {
 			if (!selectSkillsErr) {
@@ -1130,7 +1131,7 @@ module.exports = function(app) {
 
 	//Get all the Skills by user ID
 	apiRoutes.get("/players/:playerId/skills", function(req, res) {
-		connection2.query('SELECT PS.skillId, S.skillName, status as intValue from playerskills PS inner join user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
+		connection2.query('SELECT PS.skillId, S.name, status as intValue from playerskills PS inner join user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
 			' WHERE PS.userId=' + req.params.playerId,
 			function(selectSkillsErr, skills) {
 				if (!selectSkillsErr) {
@@ -1147,7 +1148,7 @@ module.exports = function(app) {
 
 	//Add a player to the especific team
 	apiRoutes.post("/team/:teamId", function(req, res) {
-		connection.query('INSERT INTO teamplayer (teamId, playerId, position, requestStatus) VALUES (' + req.params.teamId + ',' + req.body.userId + ', "' + req.body.skills[0].skillId + '","1")', function(addTeamPlayerErr, player) {
+		connection.query('INSERT INTO teamplayer (teamId, playerId, positionId, requestStatus) VALUES (' + req.params.teamId + ',' + req.body.id + ', "' + req.body.skills[0].id + '","1")', function(addTeamPlayerErr, player) {
 			if (!addTeamPlayerErr) {
 				res.send(player);
 			} else {
@@ -1162,7 +1163,7 @@ module.exports = function(app) {
 
 	//Update Team player request
 	apiRoutes.get("/team/playerRequest/:teamPlayerId/:requestStatus", function(req, res) {
-		connection.query('UPDATE teamplayer SET requestStatus=' + req.params.requestStatus + ' WHERE teamPlayerId=' + req.params.teamPlayerId, function(addTeamPlayerErr, player) {
+		connection.query('UPDATE teamplayer SET requestStatus=' + req.params.requestStatus + ' WHERE id=' + req.params.teamPlayerId, function(addTeamPlayerErr, player) {
 			if (!addTeamPlayerErr) {
 				if (player.affectedRows > 0) {
 					res.send({
@@ -1456,7 +1457,7 @@ module.exports = function(app) {
 			' LEFT JOIN cantons C ON C.id = T.cantonId' +
 			' WHERE (MP.playerID=' + req.params.playerId + ' AND TP.playerId=' + req.params.playerId +
 			') OR T.ownerId=' + req.params.playerId +
-			' GROUP BY M.matchID ORDER BY M.dateTime DESC',
+			' GROUP BY M.id ORDER BY M.dateTime DESC',
 			function(selectMatchErr, Match) {
 				if (!selectMatchErr) {
 					res.send(Match);
@@ -1473,7 +1474,7 @@ module.exports = function(app) {
 	//Register a new match
 	apiRoutes.post("/matches", function(req, res) {
 		connection.query('INSERT INTO matches (team1Id, team2Id, goalsTeam1, goalsTeam2, dateTime) VALUES (' +
-			req.body.team1ID + ',' + req.body.team2ID + ',' + req.body.goalsTeam1 + ',' + req.body.goalsTeam2 + ',"' + req.body.date + ' ' + req.body.startTime + '")',
+			req.body.team1Id + ',' + req.body.team2Id + ',' + req.body.goalsTeam1 + ',' + req.body.goalsTeam2 + ',"' + req.body.date + ' ' + req.body.startTime + '")',
 			function(insertMatchErr, Match) {
 				if (!insertMatchErr) {
 					connection.query('INSERT INTO soccerfieldsdisponibilityschedule (soccerFieldId, date, startTime, endTime, matchId, isReserved) VALUES (' +
@@ -1503,17 +1504,17 @@ module.exports = function(app) {
 	apiRoutes.get("/match/:matchId/:teamId/players", function(req, res) {
 		connection.query('SELECT * from (' +
 			'SELECT U.id, U.email, U.password, U.firstName, U.lastName, U.phone, U.birthday,TIMESTAMPDIFF(YEAR, U.birthday, CURDATE()) AS age,' +
-			' S.skillName as position, MP.requestStatus, 0 extraPlayer FROM user U' +
+			' S.name as position, MP.requestStatus, 0 extraPlayer FROM user U' +
 			' INNER JOIN matchplayer MP ON U.id=MP.playerId' +
 			' INNER JOIN teamplayer TP ON TP.playerId=MP.playerId' +
-			' INNER JOIN Skills S on TP.position = S.id' +
+			' INNER JOIN skills S on TP.positionId = S.id' +
 			' INNER JOIN teams T ON T.id=TP.teamId' +
 			' INNER JOIN matches M ON M.id=MP.matchId WHERE (TP.teamId=' + req.params.teamId + ' AND M.id=' + req.params.matchId + ' AND MP.teamId IS NULL)' +
 			' UNION ' +
 			' SELECT U.id, U.email, U.password, U.firstName, U.lastName, U.phone, U.birthday,TIMESTAMPDIFF(YEAR, U.birthday, CURDATE()) AS age,' +
-			' S.skillName as position, MP.requestStatus, 1 extraPlayer FROM user U' +
+			' S.name as position, MP.requestStatus, 1 extraPlayer FROM user U' +
 			' INNER JOIN matchplayer MP ON U.id=MP.playerId' +
-			' INNER JOIN Skills S on MP.position = S.id' +
+			' INNER JOIN skills S on MP.positionId = S.id' +
 			' INNER JOIN teams T on T.id=MP.teamId' +
 			' INNER JOIN matches M ON M.id=MP.matchId WHERE (MP.teamId=' + req.params.teamId + ' AND M.id=' + req.params.matchId + ' AND MP.teamId IS NOT NULL)' +
 			') a ORDER BY a.requestStatus DESC',
@@ -1815,7 +1816,7 @@ module.exports = function(app) {
 		connection.query('SELECT SF.id, SF.soccerCenterId, SC.name soccerCenterName, SF.name, SF.openTime, SF.closeTime FROM soccerfields SF' +
 			' INNER JOIN soccercenters SC' +
 			' ON SF.soccerCenterId=SC.id' +
-			' WHERE SC.provinceId IN (' + req.params.provinceId + ') AND SC.cantonId IN (' + req.params.cantonId + ')',
+			' WHERE SC.cantonId IN (' + req.params.cantonId + ')',
 			function(selectSoccerCenterErr, soccercenters) {
 				if (!selectSoccerCenterErr) {
 					res.send(soccercenters);
