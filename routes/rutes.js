@@ -479,16 +479,17 @@ module.exports = function(app) {
 		*/
 
 	//Validate User (LOGIN)
-	/*validateUser1 = function(req, res) {
-		connection.query('SELECT userId, email, password, firstName, lastName, phone, birthday, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age,' +
-			' activationCode, userType, P.id, P.name provinceName, C.cantonId, C.name cantonName ' +
-			' FROM user U INNER JOIN provinces P ON P.id=U.provinceId ' +
-			' INNER JOIN cantons C ON C.cantonId=U.cantonId WHERE email="' + req.params.email + '" and password="' + req.params.password + '"',
+	validateUser = function(req, res) {
+		connection.query('SELECT U.id, email, password, firstName, lastName, phone, birthday, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age,' +
+			' activationCode, userType, C.provinceId, P.name provinceName, U.cantonId, C.name cantonName ' +
+			' FROM user U INNER JOIN cantons C ON C.id=U.cantonId ' +
+			' INNER JOIN provinces P ON P.id=C.provinceId WHERE email="' + req.params.email + '" and password="' + req.params.password + '"',
 			function(err, user) {
 				if (!err) {
 					if (user[0]) {
-						connection.query('SELECT PS.skillId, S.skillName, status as intValue from playerSkills PS inner join	user U ON U.userId=PS.userId inner join skills S on S.skillId=PS.skillId' +
-							' WHERE  PS.userId=' + user[0].userId,
+ 						connection.query('SELECT PS.skillId, S.name, status as intValue from playerskills PS INNER JOIN'+
+                            ' user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
+							' WHERE  PS.userId=' + user[0].id,
 							function(err, skills) {
 								if (!err) {
 									//callback(null, skills);
@@ -517,7 +518,8 @@ module.exports = function(app) {
 				}
 			});
 	};
-*/
+
+   /*
 	validateUser = function(req, res) {
 		var paramEmail = req.params.email;
 		var paramPass = req.params.password;
@@ -527,7 +529,11 @@ module.exports = function(app) {
 			where: {
 				'email': paramEmail
 			},
-			raw: true
+			include: [Skill, {
+				 model: Canton,
+				       include: [Province]
+				//raw: true
+			}],
 		}).then(function(user) {
 			if (user && paramPass === user.password) {
 				var token = jwt.sign(user, app.get('superSecret'), {
@@ -547,20 +553,12 @@ module.exports = function(app) {
 				"message": "The user or password does not match."
 			});
 		});
-	};
+	};*/
 
 	//Get User Info
+	/*
 	apiRoutes.get("/user/:userId", function(req, res) {
 		var userId = req.params.userId;
-
-		/*User.findById(10, {
-			include: [{
-				model: Match,
-				as: 'match'
-			}]
-		}).then(function(team) {
-			res.send(team);
-		});*/
 
 		User.findById(userId, {
 			include: [Skill, {
@@ -581,35 +579,27 @@ module.exports = function(app) {
 				"message": "User not foud."
 			});
 		});
-		/*User.create({
-			birthday: "04/10/89",
-			cantonId: 1,
-			provinceId: 1,
-			email: "jaimir14@gmail.com",
-			firstName: "jairo",
-			lastName: "miranda",
-			password: "123",
-			phone: "83186803",
-			userType: 1
-		}).catch(function(err) {
-			console.log(err);
-		});*/
-
-		/*connection.query('SELECT userId, email, password, firstName, lastName, phone, birthday, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age,' +
-			' activationCode, userType, P.id, P.name provinceName, C.cantonId, C.name cantonName' +
-			' FROM user U INNER JOIN provinces P ON P.id=U.provinceId ' +
-			' INNER JOIN cantons C ON C.cantonId=U.cantonId WHERE userId=' + req.params.userId,
+	});*/
+	
+	//Get User Info
+	apiRoutes.get("/user/:userId", function(req, res) {
+         connection.query('SELECT U.id, email, password, firstName, lastName, phone, birthday, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age,' +
+			' activationCode, userType, C.provinceId, P.name provinceName, U.cantonId, C.name cantonName' +
+			' FROM user U INNER JOIN cantons C ON C.id=U.cantonId ' +
+			' INNER JOIN provinces P ON P.id=C.provinceId  WHERE U.id=' + req.params.userId,
 			function(err, user) {
+				console.log(user);
 				if (!err) {
 					if (user[0]) {
-						connection.query('SELECT PS.skillId, S.skillName, status as intValue from playerSkills PS inner join	user U ON U.userId=PS.userId inner join skills S on S.skillId=PS.skillId' +
-							' WHERE  PS.userId=' + user[0].userId,
+						connection.query('SELECT PS.skillId, S.name, status as intValue from playerskills PS inner join	user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
+							' WHERE  PS.userId=' + user[0].id,
 							function(err, skills) {
+								console.log(skills);
 								if (!err) {
 									//callback(null, skills);
 									var data = JSON.stringify(skills);
 									user[0].skills = skills;
-									res.send(userFound);
+									res.send(user[0]);
 								}
 							}
 						);
@@ -625,7 +615,7 @@ module.exports = function(app) {
 						"message": err
 					});
 				}
-			});*/
+			});
 	});
 
 	/*
@@ -756,8 +746,8 @@ module.exports = function(app) {
 		connection.query('SELECT id FROM user WHERE email="' + req.body.email + '"', function(err, user) {
 			if (!err) {
 				if (user[0]) {
-					if (user[0].userId != 0) {
-						console.log(user[0].userId);
+					if (user[0].id != 0) {
+						console.log(user[0].id);
 					}
 					res.send({
 						"code": 1002,
@@ -765,18 +755,18 @@ module.exports = function(app) {
 					});
 					console.log('REGISTER - An user is trying to register an existing Email, email used: ' + req.body.email);
 				} else {
-					connection.query('INSERT INTO user (email, password, firstName, lastName, phone, birthday, userType, provinceId, cantonId) VALUES ("' +
-						req.body.email + '","' + req.body.password + '","' + req.body.firstName + '","' + req.body.lastName + '","' + req.body.phone + '","' + req.body.birthday + '",' + req.body.userType + ',' + req.body.provinceId + ',' + req.body.cantonId + ')',
+					connection.query('INSERT INTO user (email, password, firstName, lastName, phone, birthday, userType, cantonId) VALUES ("' +
+						req.body.email + '","' + req.body.password + '","' + req.body.firstName + '","' + req.body.lastName + '","' + req.body.phone + '","' + req.body.birthday + '",' + req.body.userType + ',' + req.body.cantonId + ')',
 						function(insertUserErr, user) {
 							if (!insertUserErr) {
 								connection.query('SELECT id FROM user WHERE email="' + req.body.email + '"', function(selectUserErr, userInserted) {
 									if (!selectUserErr) {
 										console.log('REGISTER - A new user was registered successfully using the email: ' + req.body.email);
-										generateActivationCode(userInserted[0].userId, req.body.firstName + ' ' + req.body.lastName, req.body.email);
+										generateActivationCode(userInserted[0].id, req.body.firstName + ' ' + req.body.lastName, req.body.email);
 										if (req.body.skills.length) {
 											for (var i = 0; i < req.body.skills.length; i++) {
 												connection.query('INSERT INTO playerskills (userId, skillId, status) VALUES(' +
-													userInserted[0].userId + ',"' + req.body.skills[i].skillId + '",' + req.body.skills[i].intValue + ')',
+													userInserted[0].id + ',"' + req.body.skills[i].id + '",' + req.body.skills[i].intValue + ')',
 													function(insertSkillErr, user) {
 														if (!insertSkillErr) {
 															//console.log('A new skill was registered to the userId: '+userInserted[0].userId+' using the value: '+ req.body.skills[i].intValue ,"");  									  	
@@ -789,7 +779,7 @@ module.exports = function(app) {
 										}
 										var base64Data = req.body.encodedImage;
 										if (base64Data != "") {
-											require("fs").writeFile("public/images/profile/" + userInserted[0].userId + ".png", base64Data, 'base64', function(err) {
+											require("fs").writeFile("public/images/profile/" + userInserted[0].id + ".png", base64Data, 'base64', function(err) {
 
 											});
 										} else {
@@ -797,7 +787,7 @@ module.exports = function(app) {
 												if (err)
 													throw err;
 												else {
-													fs.writeFile("public/images/profile/" + userInserted[0].userId + ".png", data, function(err) {
+													fs.writeFile("public/images/profile/" + userInserted[0].id + ".png", data, function(err) {
 
 													});
 												}
@@ -806,7 +796,7 @@ module.exports = function(app) {
 										res.send({
 											"code": 2000,
 											"message": "The new user was registered successfully.",
-											"userId": userInserted[0].userId
+											"userId": userInserted[0].id
 										});
 
 									} else {
@@ -884,8 +874,8 @@ module.exports = function(app) {
 
 	//Register team
 	apiRoutes.post("/team", function(req, res) {
-		connection.query('INSERT INTO teams (ownerId, name, provinceId, cantonId) VALUES (' +
-			req.body.ownerId + ',"' + req.body.name + '",' + req.body.provinceId + ',' + req.body.cantonId + ')',
+		connection.query('INSERT INTO teams (ownerId, name, cantonId) VALUES (' +
+			req.body.ownerId + ',"' + req.body.name + '",' + req.body.cantonId + ')',
 			function(insertTeamErr, team) {
 				if (!insertTeamErr) {
 					var base64Data = req.body.encodedImage;
@@ -927,7 +917,6 @@ module.exports = function(app) {
 			require("fs").writeFile("public/images/team/" + teamId + ".png", base64Data, 'base64', function(err) {});
 		}
 		connection.query('UPDATE teams SET name="' + req.body.name +
-			'", provinceId=' + req.body.provinceId +
 			', cantonId=' + req.body.cantonId + ' WHERE id=' + teamId,
 			function(updateTeamErr, team) {
 				if (!updateTeamErr) {
@@ -967,11 +956,11 @@ module.exports = function(app) {
 
 	//All my teams
 	apiRoutes.get("/team/:ownerId", function(req, res) {
-		connection.query('SELECT T.id, T.ownerId, T.name, T.captainId, concat(U.firstName," ", U.lastName) as completeCaptainName, T.provinceId, P.name provinceName, T.cantonId, C.name cantonName, COUNT(TP.playerId) countPlayers' +
+		connection.query('SELECT T.id, T.ownerId, T.name, T.captainId, concat(U.firstName," ", U.lastName) as completeCaptainName, C.provinceId, P.name provinceName, T.cantonId, C.name cantonName, COUNT(TP.playerId) countPlayers' +
 			' FROM teams T ' +
 			' LEFT JOIN user U ON U.id=T.captainId' +
-			' INNER JOIN provinces P ON T.provinceId=P.id' +
 			' INNER JOIN cantons C ON T.cantonId=C.id' +
+			' INNER JOIN provinces P ON C.provinceId=P.id' +
 			' LEFT JOIN teamplayer TP ON TP.teamId=T.id' +
 			' WHERE ownerId=' + req.params.ownerId +
 			' GROUP BY T.id',
@@ -1443,7 +1432,7 @@ module.exports = function(app) {
 	//Get My matches
 	apiRoutes.get("/matches/:playerId", function(req, res) {
 		connection.query('SELECT M.id, M.team1Id, T1.name team1Name, M.goalsTeam1, M.team2Id, T2.name team2Name, M.goalsTeam2, M.dateTime,' +
-			' T1.captainId team1captainId, T2.captainId team2captainId, T1.ownerId team1OwnerId, T2.ownerId team2OwnerId, DATE_FORMAT(SFDS.date,"%Y-%m-%d") as date, SFDS.startTime, SFDS.endTime, SF.name soccerFieldName, SC.name soccerCenterName, SFDS.isReserved, TP.teamId myTeamId, T.name myTeamName, T.provinceId myTeamProvinceId, P.name myTeamProvinceName, T.cantonId myTeamCantonId, C.name myTeamCantonName' +
+			' T1.captainId team1captainId, T2.captainId team2captainId, T1.ownerId team1OwnerId, T2.ownerId team2OwnerId, DATE_FORMAT(SFDS.date,"%Y-%m-%d") as date, SFDS.startTime, SFDS.endTime, SF.name soccerFieldName, SC.name soccerCenterName, SFDS.isReserved, TP.teamId myTeamId, T.name myTeamName, C.provinceId myTeamProvinceId, P.name myTeamProvinceName, T.cantonId myTeamCantonId, C.name myTeamCantonName' +
 			' FROM matches M' +
 			' INNER JOIN teams T1 ON T1.id=M.team1Id' +
 			' INNER JOIN teams T2 ON T2.id=M.team2Id' +
@@ -1453,8 +1442,8 @@ module.exports = function(app) {
 			' INNER JOIN soccercenters SC ON SF.soccerCenterId=SC.id' +
 			' LEFT JOIN teamplayer TP ON TP.teamId=T1.id OR TP.teamId=T2.id' +
 			' LEFT JOIN teams T ON T.id = TP.teamId' +
-			' LEFT JOIN provinces P ON P.id = T.provinceId' +
 			' LEFT JOIN cantons C ON C.id = T.cantonId' +
+			' LEFT JOIN provinces P ON P.id = C.provinceId' +
 			' WHERE (MP.playerID=' + req.params.playerId + ' AND TP.playerId=' + req.params.playerId +
 			') OR T.ownerId=' + req.params.playerId +
 			' GROUP BY M.id ORDER BY M.dateTime DESC',
@@ -1575,7 +1564,7 @@ module.exports = function(app) {
 		}
 		if (updatePass == "true") {
 			connection.query('UPDATE user SET email="' + req.body.email + '", password="' + req.body.password + '", firstName="' +
-				req.body.firstName + '", lastName="' + req.body.lastName + '", phone="' + req.body.phone + '", birthday="' + req.body.birthday + '", provinceId=' + req.body.provinceId + ', cantonId=' + req.body.cantonId + ' WHERE id=' + req.body.userId,
+				req.body.firstName + '", lastName="' + req.body.lastName + '", phone="' + req.body.phone + '", birthday="' + req.body.birthday + '", cantonId=' + req.body.cantonId + ' WHERE id=' + req.body.userId,
 				function(updateUserErr, user) {
 					if (!updateUserErr) {
 						if (updateSkills == "true") {
@@ -1610,7 +1599,7 @@ module.exports = function(app) {
 		}
 		if (updatePass == "false") {
 			connection.query('UPDATE user SET email="' + req.body.email + '", firstName="' +
-				req.body.firstName + '", lastName="' + req.body.lastName + '", phone="' + req.body.phone + '", birthday="' + req.body.birthday + '", provinceId=' + req.body.provinceId + ', cantonId=' + req.body.cantonId + ' WHERE id=' + req.body.userId,
+				req.body.firstName + '", lastName="' + req.body.lastName + '", phone="' + req.body.phone + '", birthday="' + req.body.birthday + '", cantonId=' + req.body.cantonId + ' WHERE id=' + req.body.userId,
 				function(updateUserErr, user) {
 					if (!updateUserErr) {
 						if (updateSkills == "true") {
@@ -1692,8 +1681,8 @@ module.exports = function(app) {
 
 	//Register Soccer Center
 	apiRoutes.post("/soccercenter", function(req, res) {
-		connection.query('INSERT INTO soccercenters (ownerId, name, address, phone, email, openTime, closeTime, provinceId, cantonId) VALUES (' +
-			req.body.ownerId + ',"' + req.body.name + '", "' + req.body.address + '", "' + req.body.phone + '", "' + req.body.email + '", "' + req.body.openTime + '", "' + req.body.closeTime + '", "' + req.body.provinceId + '", "' + req.body.cantonId + '")',
+		connection.query('INSERT INTO soccercenters (ownerId, name, address, phone, email, openTime, closeTime, cantonId) VALUES (' +
+			req.body.ownerId + ',"' + req.body.name + '", "' + req.body.address + '", "' + req.body.phone + '", "' + req.body.email + '", "' + req.body.openTime + '", "' + req.body.closeTime + '", "' + req.body.cantonId + '")',
 			function(insertSoccerCenterErr, soccercenter) {
 				if (!insertSoccerCenterErr) {
 					var base64Data = req.body.encodedImage;
@@ -1778,22 +1767,20 @@ module.exports = function(app) {
 		connection.query('SELECT SF.id, SF.soccerCenterId, SC.name soccerCenterName, SF.name FROM soccerfields SF' +
 			' INNER JOIN soccercenters SC' +
 			' ON SF.soccerCenterId=SC.id' +
-			' WHERE SC.provinceId IN (' + req.params.provinceId + ') AND SC.cantonId IN (' + req.params.cantonId + ')' +
+			' WHERE SC.cantonId IN (' + req.params.cantonId + ')' +
 			' AND SF.id NOT IN(' +
 			' SELECT SF.id FROM soccerfields SF' +
 			' INNER JOIN soccercenters SC' +
 			' ON SF.soccerCenterId=SC.id' +
 			' INNER JOIN soccerfieldsdisponibilityschedule SFDS' +
 			' ON SFDS.soccerFieldId=SF.id' +
-			' WHERE SC.provinceId IN (' + req.params.provinceId + ')' +
-			' AND SC.cantonId IN (' + req.params.cantonId + ')' +
+			' WHERE SC.cantonId IN (' + req.params.cantonId + ')' +
 			' AND date="' + req.params.date + '"' +
 			' AND (' +
 			'(startTime<="' + req.params.startTime + '" AND endTime>"' + req.params.startTime + '")' +
 			' OR (startTime<"' + req.params.endTime + '" AND endTime>"' + req.params.endTime + '")' +
 			' OR ("' + req.params.startTime + '"<=startTime AND "' + req.params.endTime + '">endTime)' +
 			'))' +
-			' AND SC.provinceId IN (' + req.params.provinceId + ')' +
 			' AND SC.cantonId IN (' + req.params.cantonId + ')' +
 			' AND (SF.openTime<="' + req.params.startTime + '" AND SF.closeTime>="' + req.params.startTime + '")' +
 			' OR  (SF.openTime<="' + req.params.endTime + '"   AND SF.closeTime>="' + req.params.endTime + '")',
