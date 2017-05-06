@@ -18,7 +18,7 @@ module.exports = function(app) {
 	var jwt = require('jsonwebtoken');
 	var config = require('./../config/config');
 
-	var apkVersion = "0.0.1";
+	var apkVersion = "0.0.2";
 	
 	var connection = mysql.createConnection({
 		host     : 'nt71li6axbkq1q6a.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
