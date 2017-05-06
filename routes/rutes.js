@@ -487,7 +487,7 @@ module.exports = function(app) {
 			function(err, user) {
 				if (!err) {
 					if (user[0]) {
- 						connection.query('SELECT PS.skillId, S.name, status as intValue from playerskills PS INNER JOIN'+
+ 						connection.query('SELECT S.id, S.name, status as intValue from playerskills PS INNER JOIN'+
                             ' user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
 							' WHERE  PS.userId=' + user[0].id,
 							function(err, skills) {
@@ -591,7 +591,7 @@ module.exports = function(app) {
 				console.log(user);
 				if (!err) {
 					if (user[0]) {
-						connection.query('SELECT PS.skillId, S.name, status as intValue from playerskills PS inner join	user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
+						connection.query('SELECT S.id, S.name, status as intValue from playerskills PS inner join	user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
 							' WHERE  PS.userId=' + user[0].id,
 							function(err, skills) {
 								console.log(skills);
@@ -1120,7 +1120,7 @@ module.exports = function(app) {
 
 	//Get all the Skills by user ID
 	apiRoutes.get("/players/:playerId/skills", function(req, res) {
-		connection2.query('SELECT PS.skillId, S.name, status as intValue from playerskills PS inner join user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
+		connection2.query('SELECT S.id, S.name, status as intValue from playerskills PS inner join user U ON U.id=PS.userId inner join skills S on S.id=PS.skillId' +
 			' WHERE PS.userId=' + req.params.playerId,
 			function(selectSkillsErr, skills) {
 				if (!selectSkillsErr) {
@@ -1560,16 +1560,16 @@ module.exports = function(app) {
 		var updateSkills = req.params.updateSkills;
 		var base64Data = req.body.encodedImage;
 		if (base64Data != "") {
-			require("fs").writeFile("public/images/profile/" + req.body.userId + ".png", base64Data, 'base64', function(err) {});
+			require("fs").writeFile("public/images/profile/" + req.body.id + ".png", base64Data, 'base64', function(err) {});
 		}
 		if (updatePass == "true") {
 			connection.query('UPDATE user SET email="' + req.body.email + '", password="' + req.body.password + '", firstName="' +
-				req.body.firstName + '", lastName="' + req.body.lastName + '", phone="' + req.body.phone + '", birthday="' + req.body.birthday + '", cantonId=' + req.body.cantonId + ' WHERE id=' + req.body.userId,
+				req.body.firstName + '", lastName="' + req.body.lastName + '", phone="' + req.body.phone + '", birthday="' + req.body.birthday + '", cantonId=' + req.body.cantonId + ' WHERE id=' + req.body.id,
 				function(updateUserErr, user) {
 					if (!updateUserErr) {
 						if (updateSkills == "true") {
 							for (var i = 0; i < req.body.skills.length; i++) {
-								connection.query('UPDATE playerskills SET status=' + req.body.skills[i].intValue + ' WHERE userId=' + req.body.userId + ' AND skillId="' + req.body.skills[i].skillId + '"', function(insertSkillErr, user) {
+								connection.query('UPDATE playerskills SET status=' + req.body.skills[i].intValue + ' WHERE userId=' + req.body.id + ' AND skillId="' + req.body.skills[i].id + '"', function(insertSkillErr, user) {
 									if (!insertSkillErr) {
 										//console.log('A new skill was registered to the userId: '+userInserted[0].userId+' using the value: '+ req.body.skills[i].intValue ,"");  
 									} else {
@@ -1599,12 +1599,13 @@ module.exports = function(app) {
 		}
 		if (updatePass == "false") {
 			connection.query('UPDATE user SET email="' + req.body.email + '", firstName="' +
-				req.body.firstName + '", lastName="' + req.body.lastName + '", phone="' + req.body.phone + '", birthday="' + req.body.birthday + '", cantonId=' + req.body.cantonId + ' WHERE id=' + req.body.userId,
+				req.body.firstName + '", lastName="' + req.body.lastName + '", phone="' + req.body.phone + '", birthday="' + req.body.birthday + '", cantonId=' + req.body.cantonId + ' WHERE id=' + req.body.id,
 				function(updateUserErr, user) {
-					if (!updateUserErr) {
+					if (!updateUserErr) {  
 						if (updateSkills == "true") {
 							for (var i = 0; i < req.body.skills.length; i++) {
-								connection.query('UPDATE playerskills SET status=' + req.body.skills[i].intValue + ' WHERE userId=' + req.body.userId + ' AND skillId="' + req.body.skills[i].skillId + '"', function(insertSkillErr, user) {
+								connection.query('UPDATE playerskills SET status=' + req.body.skills[i].intValue + ' WHERE userId=' + req.body.id + ' AND skillId="' + req.body.skills[i].id + '"', function(insertSkillErr, user) {
+								
 									if (!insertSkillErr) {
 										//console.log('A new skill was registered to the userId: '+userInserted[0].userId+' using the value: '+ req.body.skills[i].intValue ,"");  
 									} else {
